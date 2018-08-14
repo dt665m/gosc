@@ -1,6 +1,7 @@
 ifeq ($(GOPATH),)
   $(error GOPATH is not set, terminating)
 endif
+$(shell mkdir -p ${OUTPUT_DIR})
 
 BINARY=
 VET_REPORT=vet
@@ -18,10 +19,9 @@ ORG=
 PROJECT=
 REPO=github.com/${ORG}/${PROJECT}
 ROOT_DIR=${GOPATH}/src/${REPO}
-SOURCE_DIR=${ROOT_DIR}/heimdal
+SOURCE_DIR=
 OUTPUT_DIR=${ROOT_DIR}/dist
 CURRENT_DIR=$(shell pwd)
-$(shell mkdir -p ${OUTPUT_DIR})
 
 # Setup the -ldflags option for go build here, interpolate the variable values
 LDFLAGS = -ldflags "-X ${REPO}/x.name=${PROJECT} -X ${REPO}/x.version=${VERSION} -X ${REPO}/x.gitBranch=${BRANCH} -X ${REPO}/x.lastCommitSHA=${COMMIT} -X '${REPO}/x.lastCommitTime=${COMMIT_TIME}' -X ${REPO}/x.build=${BUILD}"
