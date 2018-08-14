@@ -6,7 +6,6 @@ $(shell mkdir -p ${OUTPUT_DIR})
 BINARY=
 VET_REPORT=vet
 TEST_REPORT=test
-GOARCH=amd64
 
 VERSION?=1.0.0
 BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
@@ -23,25 +22,20 @@ SOURCE_DIR=
 OUTPUT_DIR=${ROOT_DIR}/dist
 CURRENT_DIR=$(shell pwd)
 
+#Supported platforms
+PLATFORMS := linux/amd64 windows/amd64 darwin/amd64
+GOOS = $(word 1, $(subst /, ,$@))
+GOARCH = $(word 2, $(subst /, ,$@))
+
 # Setup the -ldflags option for go build here, interpolate the variable values
 LDFLAGS = -ldflags "-X ${REPO}/x.name=${PROJECT} -X ${REPO}/x.version=${VERSION} -X ${REPO}/x.gitBranch=${BRANCH} -X ${REPO}/x.lastCommitSHA=${COMMIT} -X '${REPO}/x.lastCommitTime=${COMMIT_TIME}' -X ${REPO}/x.build=${BUILD}"
 
 # Build the project
-all: clean vet test linux darwin windows
+all: clean vet test $(PLATFORMS)
 
-linux:
+$(PLATFORMS):
 	cd ${SOURCE_DIR}; \
-	GOOS=linux GOARCH=${GOARCH} go build ${LDFLAGS} -o ${OUTPUT_DIR}/bin/${BINARY}.linux.${GOARCH} . ; \
-	cd - >/dev/null
-
-darwin:
-	cd ${SOURCE_DIR}; \
-	GOOS=darwin GOARCH=${GOARCH} go build ${LDFLAGS} -o ${OUTPUT_DIR}/bin/${BINARY}.darwin.${GOARCH} . ; \
-	cd - >/dev/null
-
-windows:
-	cd ${SOURCE_DIR}; \
-	GOOS=windows GOARCH=${GOARCH} go build ${LDFLAGS} -o ${OUTPUT_DIR}/bin/${BINARY}.win.${GOARCH}.exe . ; \
+	GOOS=${GOOS} GOARCH=${GOARCH} go build ${LDFLAGS} -o ${OUTPUT_DIR}/bin/${BINARY}.${GOOS}.${GOARCH} . ; \
 	cd - >/dev/null
 
 vet:
@@ -49,15 +43,15 @@ vet:
 	go vet ./... > ${OUTPUT_DIR}/${VET_REPORT} 2>&1 ; \
 	cd - >/dev/null
 
-genkeys:
-	-mkdir -p ${OUTPUT_DIR}/pk
-	openssl genrsa -out ${OUTPUT_DIR}/pk/${PROJECT}.private.key 2048
-	openssl rsa -in ${OUTPUT_DIR}/pk/${PROJECT}.private.key -outform PEM -pubout -out ${OUTPUT_DIR}/pk/${PROJECT}.public.pem
-	cd - >/dev/null
-
 test:
 	-cd ${ROOT_DIR}; \
 	go test ./... > ${OUTPUT_DIR}/${TEST_REPORT} 2>&1 ; \
+	cd - >/dev/null
+
+rsa2048:
+	-mkdir -p ${OUTPUT_DIR}/pk
+	openssl genrsa -out ${OUTPUT_DIR}/pk/${PROJECT}.private.key 2048
+	openssl rsa -in ${OUTPUT_DIR}/pk/${PROJECT}.private.key -outform PEM -pubout -out ${OUTPUT_DIR}/pk/${PROJECT}.public.pem
 	cd - >/dev/null
 
 clean:
