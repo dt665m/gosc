@@ -3,35 +3,28 @@ package x
 import (
 	"fmt"
 	"os"
-	"runtime"
-)
-
-const (
-	Docs        = "https://github.com/uniontsai/platformapi"
-	Discussions = "https://uniontsai.slack.com"
 )
 
 var (
 	// These variables are set using -ldflags
+	name           string
 	version        string
 	gitBranch      string
 	lastCommitSHA  string
 	lastCommitTime string
-	goVersion      string
+	build          string
 )
 
 func BuildDetails() string {
 	return fmt.Sprintf(`
-Version          : %v
-Commit SHA-1     : %v
-Commit timestamp : %v
+Name             : %v
+Release          : %v
+Commit SHA1      : %v
+Commit Timestamp : %v
 Branch           : %v
-Go               : %v
-
-For documentation, visit %v.
-For discussions  , visit %v.
+Build            : %v
 `,
-		version, lastCommitSHA, lastCommitTime, gitBranch, runtime.Version())
+		name, version, lastCommitSHA, lastCommitTime, gitBranch, build)
 }
 
 func PrintVersionOnly() {
