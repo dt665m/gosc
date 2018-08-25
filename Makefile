@@ -1,36 +1,36 @@
 ifeq ($(GOPATH),)
   $(error GOPATH is not set, terminating)
 endif
-$(shell mkdir -p ${OUTPUT_DIR})
 
-BINARY=
-VET_REPORT=vet
-TEST_REPORT=test
+BINARY :=
+VET_REPORT := vet
+TEST_REPORT := test
 
-VERSION?=1.0.0
-BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
-COMMIT=$(shell git rev-parse --short HEAD)
-COMMIT_TIME=$(shell git log -1 --format=%ci)
-BUILD=
+VERSION ?= 1.0.0
+BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+COMMIT := $(shell git rev-parse --short HEAD)
+COMMIT_TIME := $(shell git log -1 --format=%ci)
+BUILD :=
 
 # Symlink into GOPATH
-ORG=
-PROJECT=
-REPO=github.com/${ORG}/${PROJECT}
-ROOT_DIR=${GOPATH}/src/${REPO}
-SOURCE_DIR=
-OUTPUT_DIR=${ROOT_DIR}/dist
-CURRENT_DIR=$(shell pwd)
+ORG :=
+PROJECT :=
+REPO := github.com/${ORG}/${PROJECT}
+ROOT_DIR := ${GOPATH}/src/${REPO}
+SOURCE_DIR :=
+OUTPUT_DIR := ${ROOT_DIR}/dist
+$(shell mkdir -p ${OUTPUT_DIR})
 
-#Supported platforms
+# Supported platforms and tools
 PLATFORMS := linux/amd64 windows/amd64 darwin/amd64
 GOOS = $(word 1, $(subst /, ,$@))
 GOARCH = $(word 2, $(subst /, ,$@))
+PWD = $(shell pwd)
 
 # Setup the -ldflags option for go build here, interpolate the variable values
 LDFLAGS = -ldflags "-X ${REPO}/x.name=${PROJECT} -X ${REPO}/x.version=${VERSION} -X ${REPO}/x.gitBranch=${BRANCH} -X ${REPO}/x.lastCommitSHA=${COMMIT} -X '${REPO}/x.lastCommitTime=${COMMIT_TIME}' -X ${REPO}/x.build=${BUILD}"
 
-# Build the project
+# Targets
 all: clean vet test $(PLATFORMS)
 
 $(PLATFORMS):
@@ -52,7 +52,6 @@ rsa2048:
 	-mkdir -p ${OUTPUT_DIR}/pk
 	openssl genrsa -out ${OUTPUT_DIR}/pk/${PROJECT}.private.key 2048
 	openssl rsa -in ${OUTPUT_DIR}/pk/${PROJECT}.private.key -outform PEM -pubout -out ${OUTPUT_DIR}/pk/${PROJECT}.public.pem
-	cd - >/dev/null
 
 clean:
 	-rm -rf ${OUTPUT_DIR}/*
